@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  output   = "../src/generated/prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator typegraphql {
+  provider = "typegraphql-prisma"
+}
+
+
+enum Error {
+  EMAIL_ALREADY_USED
+  EMAIL_REGUIRED
+  INTERNAL_SERVER_ERROR
+  INVALID_PASSWORD
+  NOT_ADMIN
+  NOT_AUTHORIZED
+  NOT_VALID_EMAIL
+  PASSWORD_REGUIRED
+  USER_NOT_FOUND
+}
+
+enum RoleName {
+  USER
+  ADMIN
+}
+
+model Role {
+  id          String @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  name        RoleName @unique
+  users       User[]
+  description String?
+}
+
+model User {
+  id        String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  /// @TypeGraphQL.omit(output: true)
+  password  String
+  email     String   @unique
+  roles     Role[]
+  firstName String?
+  lastName  String?
+  surName   String?
+}

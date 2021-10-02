@@ -3,6 +3,7 @@ name: CI/DI
 env:
   DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
   DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+  OPS_NAME: ${{ secrets.OPS_NAME }}
 
 on:
   push:
@@ -15,7 +16,49 @@ jobs:
   before:
     runs-on: vps15514
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out the repo
+        uses: actions/checkout@v2
 
       - name: deplloy DB
         run: docker stack deploy -c ./services/pg.yml ${{ secrets.OPS_NAME }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: before
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}        
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}  
+
+  migrate:
+    runs-on: vps15514
+    needs: build
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} 
+
+      - name: Update image
+        run: docker pull ghcr.io/chakra-ui-admin/chakra-ui-admin-back
+
+      - name: Migrate DB
+        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back yarn prisma migrate deploy
+
+      - name: Seed DB
+        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back node ./prisma/seed.js             
