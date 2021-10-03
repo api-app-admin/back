@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import * as tq from 'type-graphql'
 import { ApolloServer } from 'apollo-server-fastify'
-import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
+import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core'
 import { applyMiddleware } from 'graphql-middleware'
 
 import { resolvers } from './resolvers'
@@ -17,7 +17,7 @@ export const getGraphqlServer = async () => {
     schema: applyMiddleware(schema, permissions),
     introspection: true,
     context: createContext,
-    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    plugins: [ApolloServerPluginLandingPageLocalDefault()],
   })
   return {
     graphql,

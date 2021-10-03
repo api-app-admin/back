@@ -4,6 +4,8 @@ env:
   DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
   DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
   OPS_NAME: ${{ secrets.OPS_NAME }}
+  DOMAIN: ${{ secrets.DOMAIN }}
+  APP_SECRET: ${{ secrets.APP_SECRET }}
 
 on:
   push:
@@ -61,4 +63,21 @@ jobs:
         run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back yarn prisma migrate deploy
 
       - name: Seed DB
-        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back node ./prisma/seed.js             
+        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back node ./prisma/seed.js
+        
+  deploy:
+    runs-on: vps15514
+    needs: migrate
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Deploy
+        run: docker stack deploy --with-registry-auth -c ./services/main.yml ${{ secrets.OPS_NAME }}
+
+      - name: Clear unused Docker images
+        run: docker image prune -a           

@@ -6,7 +6,7 @@ const app = async () => {
   const { graphql } = await getGraphqlServer()
   await graphql.start()
   const server = fastify()
-  server.register(graphql.createHandler())
+  server.register(graphql.createHandler({path: '/'}))
   const PORT = process.env.PORT || 4000
   server.listen(PORT, '0.0.0.0', (err, address) => {
     if (err) {
