@@ -10,7 +10,7 @@ export const isAuthenticated = rule({ cache: 'contextual' })((parent, args, ctx:
 })
 
 export const isAdmin = rule({ cache: 'contextual' })((parent, args, ctx: Context) => {
-  return ctx.user && !!ctx.user?.roles?.find(({ name }) => name === RoleName.ADMIN)
+  return ctx.user && !!ctx.user.roles?.find(({ name }) => name === RoleName.ADMIN)
     ? true
     : new ApolloError('Not Admin!', Error.NOT_ADMIN)
 })

@@ -11,7 +11,7 @@ export type Context = {
   user: User | null
 }
 
-type ContextArgs = {
+export type ContextArgs = {
   request: FastifyRequest
   reply: FastifyReply
 }
@@ -29,8 +29,7 @@ const getAuthUser = async (authorization?: string): Promise<User | null> => {
   const token = authorization.replace('Bearer ', '')
   try {
     const { userId } = jwt.verify(token, process.env.APP_SECRET || 'secret') as { userId: string }
-    const user = await prisma.user.findUnique({ where: { id: userId } })
-    if (!user) return null
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { roles: true } })
     return user || null
   } catch (error) {
     return null
