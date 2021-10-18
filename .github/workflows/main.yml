@@ -24,9 +24,36 @@ jobs:
       - name: deplloy DB
         run: docker stack deploy -c ./services/pg.yml ${{ secrets.OPS_NAME }}
 
-  build:
+
+  tests:
     runs-on: ubuntu-latest
     needs: before
+    env:
+     DATABASE_USERNAME: postgres
+     DATABASE_PASSWORD: postgres
+     APP_SECRET: ''
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Start DB
+        run: yarn start-db
+
+      - name: Install packages
+        run: yarn     
+        
+      - name: Migrate 
+        run: yarn migrate-dev
+        
+      - name: Seeding 
+        run: yarn seed
+        
+      - name: Testing 
+        run: yarn jest --coverage      
+
+  build:
+    runs-on: ubuntu-latest
+    needs: tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
