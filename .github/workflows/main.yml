@@ -84,13 +84,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Update image
-        run: docker pull ghcr.io/chakra-ui-admin/chakra-ui-admin-back
+        run: docker pull ghcr.io/api-app-admin/back
 
       - name: Migrate DB
-        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back yarn prisma migrate deploy
+        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/api-app-admin/back yarn prisma migrate deploy
 
       - name: Seed DB
-        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/chakra-ui-admin/chakra-ui-admin-back node ./prisma/seed.js
+        run: docker run --rm -i --network=${{ secrets.OPS_NAME }} -e DATABASE_URL=postgresql://${{ secrets.DATABASE_USERNAME }}:${{ secrets.DATABASE_PASSWORD }}@db:5432/${{ secrets.DATABASE_USERNAME }}?schema=public ghcr.io/api-app-admin/back node ./prisma/seed.js
         
   deploy:
     runs-on: vps15514

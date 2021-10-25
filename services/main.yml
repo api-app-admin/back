@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   back:
-    image: ghcr.io/chakra-ui-admin/chakra-ui-admin-back:latest
+    image: ghcr.io/api-app-admin/back
     deploy:
       replicas: 1
       placement:
